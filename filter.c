@@ -1,6 +1,9 @@
 #pragma once
 
 #include "filter.h"
+#include "util.h"
+#include <wdm.h>
+#include <minwindef.h>
 #include <fltKernel.h>
 
 NTSTATUS OsuFilterUnload(
@@ -10,7 +13,7 @@ NTSTATUS OsuFilterUnload(
 
     PAGED_CODE();
 
-    FltUnregisterFilter(GlobalFilterData.FilterHandle);
+    FltUnregisterFilter(gFilterData.FilterHandle);
 
     return STATUS_SUCCESS;
 }
@@ -26,4 +29,74 @@ NTSTATUS OsuFilterTeardownQuery(
 
     // Always allow teardowns
     return STATUS_SUCCESS;
+}
+
+FLT_PREOP_CALLBACK_STATUS OsuPreStreamHandleCreate(
+        _Inout_ PFLT_CALLBACK_DATA Data,
+        _In_ PCFLT_RELATED_OBJECTS FltObjects,
+        _Out_ PVOID* CompletionContext
+) {
+    UNREFERENCED_PARAMETER(FltObjects);
+    UNREFERENCED_PARAMETER(CompletionContext);
+
+    PAGED_CODE();
+
+    NTSTATUS status;
+    HANDLE invokingProcId;
+    UNICODE_STRING invokingProcPath;
+    PFLT_FILE_NAME_INFORMATION filenameInfo = NULL;
+
+    // Get the process that triggered this event
+    invokingProcId = PsGetThreadProcessId(Data->Thread);
+
+    // Get the process's path
+    status = ZwGetProcessImageFileNameW(invokingProcId, &invokingProcPath);
+    if (!NT_SUCCESS(status)) {
+        DbgPrint("!!! osu-safe.sys --- ZwGetProcessImageFileNameW failed; status 0x%X\n", status);
+        goto cleanup;
+    }
+
+    // Check that the proc path ends with osu!.exe
+    UNICODE_STRING invokingProcName = GetFileNameW(invokingProcPath);
+
+    if (RtlEqualUnicodeString(&invokingProcName, &OSU_NAME, FALSE)) {
+        // Not osu!, skip
+        goto cleanup;
+    }
+
+    // Try to get the file name if it's available or safe to get, otherwise skip if unavailable
+    status = FltGetFileNameInformation(Data,
+                                       FLT_FILE_NAME_NORMALIZED | FLT_FILE_NAME_QUERY_DEFAULT,
+                                       &filenameInfo);
+
+    if (!NT_SUCCESS(status)) {
+        DbgPrint("!!! osu-safe.sys --- FltGetFileNameInformation failed; status 0x%X\n", status);
+        goto cleanup;
+    }
+
+    // Process result of FltGetFileNameInformation to get extension
+    UNICODE_STRING extension;
+    status = FltParseFileName(&filenameInfo->Name, &extension, NULL, NULL);
+    if (!NT_SUCCESS(status)) {
+        DbgPrint("!!! osu-safe.sys --- FltParseFileName failed; status 0x%X\n", status);
+        goto cleanup;
+    }
+
+    // Check if the filename extension is either jpg or png, which osu! supports
+    if (!RtlEqualUnicodeString(&extension, &JPG, TRUE) &&
+        !RtlEqualUnicodeString(&extension, &PNG, TRUE)) {
+        // Not a matching extension, skip
+        goto cleanup;
+    }
+
+    // TODO: check if this is in Songs folder
+
+    Data->IoStatus.Status = STATUS_ACCESS_DENIED;
+    Data->IoStatus.Information = 0;
+
+    cleanup:
+    if (filenameInfo) { FltReleaseFileNameInformation(filenameInfo); }
+    if (invokingProcPath.Buffer) { ExFreePool(invokingProcPath.Buffer); }
+
+    return FLT_PREOP_SUCCESS_NO_CALLBACK;
 }
