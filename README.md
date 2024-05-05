@@ -14,9 +14,8 @@ this. This is just a POC when playing offline (and in which case it's much easie
 
 ## Details
 
-Once the driver has been loaded, it will listen to all processes to find one named `osu!.exe`, verify it is osu!stable,
-and then block any JPG and PNG files from having a file handle opened to them if they are located inside
-the `Songs` folder.
+Once the driver has been loaded, it will listen to all file handle opens and find any from a process named `osu!.exe`,
+and if the file is inside the `Songs` folder while being a JPG or PNG, it blocks access to the file.
 
-The advantage of this is that you do not need to alter the map files, or do mass file renames every single time you
-want to disable backgrounds, which is error-prone and very slow.
+The advantage of this is that you do not need to alter any map files, or do mass file renames every single time you
+want to disable backgrounds, which is error-prone and very slow with thousands of maps.

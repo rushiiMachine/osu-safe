@@ -63,8 +63,9 @@ NTSTATUS ZwGetProcessImageFileNameW(
 }
 
 UNICODE_STRING GetFileNameW(_In_ UNICODE_STRING FilePath) {
-    PWCHAR bufPtr = (PWCHAR) ((PCHAR) FilePath.Buffer + FilePath.Length);
-    while (bufPtr >= FilePath.Buffer) {
+    PWCHAR end = (PWCHAR) ((PCHAR) FilePath.Buffer + FilePath.Length);
+    PWCHAR bufPtr = end;
+    while (bufPtr > FilePath.Buffer) {
         if (*bufPtr == L'\\') {
             ++bufPtr;
             break;
@@ -72,13 +73,37 @@ UNICODE_STRING GetFileNameW(_In_ UNICODE_STRING FilePath) {
         --bufPtr;
     }
 
-    UNICODE_STRING fileName = {
-            /* Length= */ (USHORT) ((PCHAR) FilePath.Buffer - (PCHAR) bufPtr),
+    UNICODE_STRING name = {
+            /* Length= */ (USHORT) ((PCHAR) end - (PCHAR) bufPtr),
             /* MaximumLength= */ 0,
             /* Buffer= */ bufPtr,
     };
 
-    return fileName;
+    return name;
+}
+
+UNICODE_STRING GetParentNameW(_In_ UNICODE_STRING FilePath) {
+    PWCHAR bufPtr = (PWCHAR) ((PCHAR) FilePath.Buffer + FilePath.Length);
+
+    while (bufPtr > FilePath.Buffer)
+        if (*(bufPtr--) == L'\\') break;
+
+    UNICODE_STRING name = {
+            /* Length= */ (USHORT) ((PCHAR) bufPtr - (PCHAR) FilePath.Buffer),
+            /* MaximumLength= */ 0,
+            /* Buffer= */ FilePath.Buffer,
+    };
+
+    return name;
+}
+
+BOOLEAN SkipBytesW(_Inout_ PUNICODE_STRING String, USHORT bytes) {
+    if ((PCHAR) String->Buffer + bytes > (PCHAR) String->Buffer + String->Length)
+        return FALSE;
+
+    String->Buffer = (PWCHAR) ((PCHAR) String->Buffer + bytes);
+
+    return TRUE;
 }
 
 //NTSTATUS CacheZwQueryInformationProcess() {

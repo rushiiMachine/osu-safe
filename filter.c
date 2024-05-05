@@ -58,9 +58,7 @@ FLT_PREOP_CALLBACK_STATUS OsuPreStreamHandleCreate(
 
     // Check that the proc path ends with osu!.exe
     UNICODE_STRING invokingProcName = GetFileNameW(invokingProcPath);
-
     if (RtlEqualUnicodeString(&invokingProcName, &OSU_NAME, FALSE)) {
-        // Not osu!, skip
         goto cleanup;
     }
 
@@ -89,14 +87,25 @@ FLT_PREOP_CALLBACK_STATUS OsuPreStreamHandleCreate(
         goto cleanup;
     }
 
-    // TODO: check if this is in Songs folder
+    UNICODE_STRING invokingProcDir = GetParentNameW(invokingProcName);
+    UNICODE_STRING targetFilePath = filenameInfo->Name;
+
+    // Check if this is in the osu!.exe directory
+    if (!RtlPrefixUnicodeString(&invokingProcDir, &targetFilePath, FALSE))
+        goto cleanup;
+
+    NT_ASSERT(SkipBytesW(&targetFilePath, invokingProcDir.Length));
+
+    // Check if this is in the songs folder
+    if (!RtlPrefixUnicodeString(&SONGS, &targetFilePath, FALSE))
+        goto cleanup;
 
     Data->IoStatus.Status = STATUS_ACCESS_DENIED;
     Data->IoStatus.Information = 0;
 
     cleanup:
-    if (filenameInfo) { FltReleaseFileNameInformation(filenameInfo); }
     if (invokingProcPath.Buffer) { ExFreePool(invokingProcPath.Buffer); }
+    if (filenameInfo) { FltReleaseFileNameInformation(filenameInfo); }
 
     return FLT_PREOP_SUCCESS_NO_CALLBACK;
 }

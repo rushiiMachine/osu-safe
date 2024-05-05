@@ -31,3 +31,14 @@ NTSTATUS ZwGetProcessImageFileNameW(
  * This does not allocate a new buffer.
  */
 UNICODE_STRING GetFileNameW(_In_ UNICODE_STRING FilePath);
+
+/**
+ * Same thing as GetFileNameW but it gets everything up until the last directory separator
+ */
+UNICODE_STRING GetParentNameW(_In_ UNICODE_STRING FilePath);
+
+/**
+ * Advances the buffer pointer a specific amount of bytes.
+ * This will cause UB if the amount of bytes isn't a multiple of 2.
+ */
+BOOLEAN SkipBytesW(_Inout_ PUNICODE_STRING String, USHORT bytes);
