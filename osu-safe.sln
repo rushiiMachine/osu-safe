@@ -1,0 +1,15 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{372da6da-2661-4d47-8428-a61dc8b891b6}") = "osu-safe KMDF", "osu-safe.vcxproj", "{50f7be11-4326-49b9-8ce0-464a568b073a}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{50f7be11-4326-49b9-8ce0-464a568b073a}.Debug|x64.ActiveCfg = Debug|x64
+		{50f7be11-4326-49b9-8ce0-464a568b073a}.Debug|x64.Build.0 = Debug|x64
+		{50f7be11-4326-49b9-8ce0-464a568b073a}.Release|x64.ActiveCfg = Release|x64
+		{50f7be11-4326-49b9-8ce0-464a568b073a}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+EndGlobal
