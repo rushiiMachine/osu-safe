@@ -1,0 +1,75 @@
+;; 
+;; Exported Sections
+;;
+
+[Version]
+Signature = "$Windows NT$"
+Class = "ContentScreener"
+ClassGuid = {3e3f0674-c83c-4558-bb26-9820e1eba5c5}
+Provider = "rushiiMachine"
+DriverVer = 05/01/2024,1.0.0.0
+CatalogFile = driver.cat
+PnpLockdown = 1
+
+[SourceDisksFiles]
+osu-safe.sys = 1,,
+
+[SourceDisksNames]
+1 = "osu-safe",,,
+
+[DestinationDirs]
+DefaultDestDir = 12                          ; %windir%\system32\drivers
+
+[DefaultInstall.NT$ARCH$]
+OptionDesc = %ServiceDescription%
+CopyFiles = Driver.Files
+
+[DefaultInstall.NT$ARCH$.Services]
+AddService = %ServiceName%,,Driver.Service
+
+[DefaultUninstall.NT$ARCH$]
+LegacyUninstall = 1
+DelFiles = Driver.Files
+
+[DefaultUninstall.NT$ARCH$.Services]
+DelService = %ServiceName%,0x200             ; Ensure service is stopped before deleting
+
+;;
+;; Support Sections
+;;
+
+[Driver.Service]
+DisplayName = %ServiceName%
+Description = %ServiceDescription%
+ServiceBinary = %12%\%DriverName%.sys        ; %windir%\system32\drivers
+Dependencies = "FltMgr"
+ServiceType = 2                              ; SERVICE_FILE_SYSTEM_DRIVER
+StartType = 3                                ; SERVICE_DEMAND_START
+ErrorControl = 1                             ; SERVICE_ERROR_NORMAL
+LoadOrderGroup = "FSFilter Content Screener"
+AddReg = Driver.AddRegistry
+
+[Driver.AddRegistry]
+; SupportedFeatures -> SUPPORTED_FS_FEATURES_QUERY_OPEN
+HKR,"Parameters","SupportedFeatures",0x00010001,0x4
+HKR,"Parameters\Instances","DefaultInstance",0x00000000,%DefaultInstance%
+HKR,"Parameters\Instances\"%Instance1.Name%,"Altitude",0x00000000,%Instance1.Altitude%
+HKR,"Parameters\Instances\"%Instance1.Name%,"Flags",0x00010001,%Instance1.Flags%
+
+[Driver.Files]
+%DriverName%.sys
+
+;;
+;; Strings
+;;
+
+[Strings]
+ServiceDescription = "osu-safe minifilter driver"
+ServiceName = "osu-safe"
+DriverName = "osu-safe"
+
+; Instance-specific strings
+DefaultInstance = "Default"
+Instance1.Name = "Default"
+Instance1.Altitude = "264999"
+Instance1.Flags = 0x0
