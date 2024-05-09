@@ -1,18 +1,17 @@
 #pragma once
 
 #include <ntifs.h>
-#include <wdm.h>
 
 /**
  * Missing header export
  * @see https://learn.microsoft.com/en-us/windows/win32/procthread/zwqueryinformationprocess
  */
 extern NTSTATUS ZwQueryInformationProcess(
-        _In_      HANDLE ProcessHandle,
-        _In_      PROCESSINFOCLASS ProcessInformationClass,
-        _Out_     PVOID ProcessInformation,
-        _In_      ULONG ProcessInformationLength,
-        _Out_opt_ PULONG ReturnLength
+    _In_ HANDLE ProcessHandle,
+    _In_ PROCESSINFOCLASS ProcessInformationClass,
+    _Out_ PVOID ProcessInformation,
+    _In_ ULONG ProcessInformationLength,
+    _Out_opt_ PULONG ReturnLength
 );
 
 /**
@@ -22,8 +21,8 @@ extern NTSTATUS ZwQueryInformationProcess(
  *                  whose buffer should be freed with ExFreePool when done with.
  */
 NTSTATUS ZwGetProcessImageFileNameW(
-        _In_ HANDLE ProcessId,
-        _Out_ PUNICODE_STRING ImageName
+    _In_ HANDLE ProcessId,
+    _Out_ PUNICODE_STRING ImageName
 );
 
 /**

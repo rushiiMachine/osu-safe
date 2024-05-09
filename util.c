@@ -2,8 +2,8 @@
 #include <limits.h>
 
 NTSTATUS ZwGetProcessImageFileNameW(
-        _In_ HANDLE ProcessId,
-        _Out_ PUNICODE_STRING ImageName
+    _In_ CONST HANDLE ProcessId,
+    _Out_ CONST PUNICODE_STRING ImageName
 ) {
     NTSTATUS status;
     PEPROCESS eProcess = NULL;
@@ -31,11 +31,11 @@ NTSTATUS ZwGetProcessImageFileNameW(
         goto cleanup;
     }
 
-            NT_ASSERTMSG("!!! osu-safe.sys --- ZwQueryInformationProcess too long\n", length <= USHRT_MAX);
+    NT_ASSERTMSG("!!! osu-safe.sys --- ZwQueryInformationProcess too long\n", length <= USHRT_MAX);
 
     // Allocate string buffer
     ImageName->Length = 0;
-    ImageName->MaximumLength = (USHORT) length;
+    ImageName->MaximumLength = (USHORT)length;
     ImageName->Buffer = ExAllocatePoolZero(NonPagedPool, length, 'jnf8');
 
     if (!ImageName->Buffer) {
@@ -52,17 +52,16 @@ NTSTATUS ZwGetProcessImageFileNameW(
                                        &length);
     if (!NT_SUCCESS(status)) {
         DbgPrint("!!! osu-safe.sys --- ZwQueryInformationProcess failed: 0x%X\n", status);
-        goto cleanup;
     }
 
-    cleanup:
+cleanup:
     if (eProcess) { ObDereferenceObject(eProcess); }
     if (hProcess) { ZwClose(hProcess); }
 
     return status;
 }
 
-UNICODE_STRING GetFileNameW(_In_ UNICODE_STRING FilePath) {
+UNICODE_STRING GetFileNameW(_In_ CONST UNICODE_STRING FilePath) {
     PWCHAR end = (PWCHAR) ((PCHAR) FilePath.Buffer + FilePath.Length);
     PWCHAR bufPtr = end;
     while (bufPtr > FilePath.Buffer) {
@@ -73,49 +72,35 @@ UNICODE_STRING GetFileNameW(_In_ UNICODE_STRING FilePath) {
         --bufPtr;
     }
 
-    UNICODE_STRING name = {
-            /* Length= */ (USHORT) ((PCHAR) end - (PCHAR) bufPtr),
-            /* MaximumLength= */ 0,
-            /* Buffer= */ bufPtr,
+    const UNICODE_STRING name = {
+        /* Length= */ (USHORT)((PCHAR)end - (PCHAR)bufPtr),
+        /* MaximumLength= */ 0,
+        /* Buffer= */ bufPtr,
     };
 
     return name;
 }
 
-UNICODE_STRING GetParentNameW(_In_ UNICODE_STRING FilePath) {
+UNICODE_STRING GetParentNameW(_In_ CONST UNICODE_STRING FilePath) {
     PWCHAR bufPtr = (PWCHAR) ((PCHAR) FilePath.Buffer + FilePath.Length);
 
     while (bufPtr > FilePath.Buffer)
         if (*(bufPtr--) == L'\\') break;
 
-    UNICODE_STRING name = {
-            /* Length= */ (USHORT) ((PCHAR) bufPtr - (PCHAR) FilePath.Buffer),
-            /* MaximumLength= */ 0,
-            /* Buffer= */ FilePath.Buffer,
+    const UNICODE_STRING name = {
+        /* Length= */ (USHORT)((PCHAR)bufPtr - (PCHAR)FilePath.Buffer),
+        /* MaximumLength= */ 0,
+        /* Buffer= */ FilePath.Buffer,
     };
 
     return name;
 }
 
 BOOLEAN SkipBytesW(_Inout_ PUNICODE_STRING String, USHORT bytes) {
-    if ((PCHAR) String->Buffer + bytes > (PCHAR) String->Buffer + String->Length)
+    if ((PCHAR)String->Buffer + bytes > (PCHAR)String->Buffer + String->Length)
         return FALSE;
 
-    String->Buffer = (PWCHAR) ((PCHAR) String->Buffer + bytes);
+    String->Buffer = (PWCHAR)((PCHAR)String->Buffer + bytes);
 
     return TRUE;
 }
-
-//NTSTATUS CacheZwQueryInformationProcess() {
-//    if (!ZwQueryInformationProcess) {
-//        UNICODE_STRING routineName = RTL_CONSTANT_STRING(L"ZwQueryInformationProcess");
-//        ZwQueryInformationProcess = (QUERY_INFO_PROCESS) MmGetSystemRoutineAddress(&routineName);
-//
-//        if (!ZwQueryInformationProcess) {
-//            DbgPrint("!!! osu-safe.sys --- Cannot resolve ZwQueryInformationProcess\n");
-//            return STATUS_LINK_FAILED;
-//        }
-//    }
-//
-//    return STATUS_SUCCESS;
-//}

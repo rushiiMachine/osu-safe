@@ -1,13 +1,10 @@
-#pragma once
-
 #include "filter.h"
 #include "util.h"
 #include <wdm.h>
-#include <minwindef.h>
 #include <fltKernel.h>
 
 NTSTATUS OsuFilterUnload(
-        _In_ FLT_FILTER_UNLOAD_FLAGS Flags
+    _In_ CONST FLT_FILTER_UNLOAD_FLAGS Flags
 ) {
     UNREFERENCED_PARAMETER(Flags);
 
@@ -19,11 +16,11 @@ NTSTATUS OsuFilterUnload(
 }
 
 NTSTATUS OsuFilterTeardownQuery(
-        _In_ PCFLT_RELATED_OBJECTS FltObjects,
-        _In_ FLT_INSTANCE_QUERY_TEARDOWN_FLAGS Reason
+    _In_ CONST PCFLT_RELATED_OBJECTS FltObjects,
+    _In_ CONST FLT_INSTANCE_QUERY_TEARDOWN_FLAGS Flags
 ) {
     UNREFERENCED_PARAMETER(FltObjects);
-    UNREFERENCED_PARAMETER(Reason);
+    UNREFERENCED_PARAMETER(Flags);
 
     PAGED_CODE();
 
@@ -32,9 +29,9 @@ NTSTATUS OsuFilterTeardownQuery(
 }
 
 FLT_PREOP_CALLBACK_STATUS OsuPreStreamHandleCreate(
-        _Inout_ PFLT_CALLBACK_DATA Data,
-        _In_ PCFLT_RELATED_OBJECTS FltObjects,
-        _Out_ PVOID* CompletionContext
+    _Inout_ CONST PFLT_CALLBACK_DATA Data,
+    _In_ CONST PCFLT_RELATED_OBJECTS FltObjects,
+    _Out_ CONST PVOID* CompletionContext
 ) {
     UNREFERENCED_PARAMETER(FltObjects);
     UNREFERENCED_PARAMETER(CompletionContext);
@@ -103,7 +100,7 @@ FLT_PREOP_CALLBACK_STATUS OsuPreStreamHandleCreate(
     Data->IoStatus.Status = STATUS_ACCESS_DENIED;
     Data->IoStatus.Information = 0;
 
-    cleanup:
+cleanup:
     if (invokingProcPath.Buffer) { ExFreePool(invokingProcPath.Buffer); }
     if (filenameInfo) { FltReleaseFileNameInformation(filenameInfo); }
 

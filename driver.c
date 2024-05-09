@@ -1,12 +1,10 @@
-#pragma once
-
 #include "driver.h"
 #include "filter.h"
 #include "util.h"
 
 NTSTATUS DriverEntry(
-        _In_ PDRIVER_OBJECT DriverObject,
-        _In_ PUNICODE_STRING RegistryPath
+    _In_ CONST PDRIVER_OBJECT DriverObject,
+    _In_ CONST PUNICODE_STRING RegistryPath
 ) {
     UNREFERENCED_PARAMETER((void*) DriverEntry);
     UNREFERENCED_PARAMETER(RegistryPath);

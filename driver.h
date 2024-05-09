@@ -2,7 +2,7 @@
 
 #include <fltKernel.h>
 
-//#pragma prefast(disable:__WARNING_ENCODE_MEMBER_FUNCTION_POINTER, "Not valid for kernel mode drivers")
+#pragma prefast(disable:__WARNING_ENCODE_MEMBER_FUNCTION_POINTER, "Not valid for kernel mode drivers")
 
 /**
  * Entry routine for this KMDF driver.
@@ -15,7 +15,3 @@ NTSTATUS DriverEntry(
         _In_ PDRIVER_OBJECT DriverObject,
         _In_ PUNICODE_STRING RegistryPath
 );
-
-#ifdef ALLOC_PRAGMA
-#pragma alloc_text(INIT, DriverEntry)
-#endif
